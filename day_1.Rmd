@@ -1,0 +1,55 @@
+---
+title: "R training day 1"
+author: "Jim S"
+date: "9/21/2021"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse); library(yaml); library(googlesheets4); library(DT)
+```
+
+## What is this about? 
+
+We are doing some nifty analysis on the career histories of the world's most influential people. 
+
+```{r auth_sheets}
+
+creds <- yaml.load_file("creds.yaml")
+
+gs4_auth(email = creds$gsheets$email)
+
+career_histories <- read_sheet(ss = creds$gsheets$url, sheet = "Career histories")
+
+people <- read_sheet(ss = creds$gsheets$url, sheet = "People")
+
+```
+
+
+Now, let's clean some data 
+
+
+```{r data_cleaning}
+
+people <- people %>%
+  mutate(`Undergraduate institution` = case_when(`Undergraduate institution`=="Harvard" ~ "Harvard University", 
+                                                 `Undergraduate institution`=="Harvard College" ~ "Harvard University",
+                                                 TRUE ~ `Undergraduate institution`))
+```
+
+
+Now let's create a table and publish
+
+
+```{r create_table}
+
+career_histories %>%
+  group_by(Role_broad) %>% 
+  tally() %>% 
+  arrange(-n) %>%
+  datatable()
+
+```
